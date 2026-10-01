@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English & Communication Course Designer</title>
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #050d1a;
+      --surface:   #0b1a2f;
+      --card:      #0f2340;
+      --border:    #1a3a5c;
+      --accent1:   #00c6ff;
+      --accent2:   #7b2ff7;
+      --accent3:   #00e5a0;
+      --text:      #e2eaf6;
+      --muted:     #7a9abf;
+      --danger:    #ff4f6b;
+      --radius:    12px;
+      --transition: 0.25s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated background grid ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0,198,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,198,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Floating orbs ─── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      animation: floatOrb 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 400px; height: 400px; background: rgba(123,47,247,0.18); top: -100px; right: -100px; }
+    .orb-2 { width: 350px; height: 350px; background: rgba(0,198,255,0.12); bottom: 0; left: -80px; animation-delay: -6s; }
+    .orb-3 { width: 250px; height: 250px; background: rgba(0,229,160,0.10); top: 40%; left: 50%; animation-delay: -3s; }
+
+    @keyframes floatOrb {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 40px) scale(1.1); }
+    }
+
+    /* ─── Layout ─── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ─── Header ─── */
+    header {
+      text-align: center;
+      padding: 3rem 1rem 2.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,198,255,0.08);
+      border: 1px solid rgba(0,198,255,0.2);
+      border-radius: 999px;
+      padding: 0.35rem 1rem;
+      font-size: 0.78rem;
+      color: var(--accent1);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .logo-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent1);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+    header h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent1) 0%, var(--accent2) 50%, var(--accent3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 560px;
+      margin: 1rem auto 0;
+      line-height: 1.6;
+    }
+
+    /* ─── Progress bar ─── */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex: 1;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 700;
+      border: 2px solid var(--border);
+      color: var(--muted);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .step-num.active {
+      border-color: var(--accent1);
+      background: rgba(0,198,255,0.12);
+      color: var(--accent1);
+    }
+    .step-num.done {
+      border-color: var(--accent3);
+      background: rgba(0,229,160,0.12);
+      color: var(--accent3);
+    }
+    .step-label { font-size: 0.82rem; color: var(--muted); }
+    .step-label.active { color: var(--text); font-weight: 600; }
+    .progress-line {
+      height: 2px;
+      flex: 0.5;
+      background: var(--border);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-line::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+    .progress-line.filled::after { transform: scaleX(1); }
+
+    /* ─── Card ─── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: var(--transition);
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent1);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-title svg { flex-shrink: 0; }
+
+    /* ─── Form elements ─── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .full { grid-column: 1; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 0.45rem; }
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0.65rem 0.9rem;
+      outline: none;
+      transition: var(--transition);
+      width: 100%;
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent1);
+      box-shadow: 0 0 0 3px rgba(0,198,255,0.12);
+    }
+    input::placeholder { color: #3a5a7a; }
+    select option { background: #0b1a2f; }
+
+    /* Custom select arrow */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 0.85rem;
+    }
+
+    /* ─── Confidence sliders ─── */
+    .slider-group { display: flex; flex-direction: column; gap: 0.45rem; }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .slider-row label {
+      min-width: 180px;
+      text-transform: none;
+      font-size: 0.88rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .confidence-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    .confidence-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+    .slider-val {
+      min-width: 30px;
+      text-align: center;
+      font-weight: 700;
+      color: var(--accent1);
+      font-size: 0.9rem;
+    }
+
+    /* ─── Buttons ─── */
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 1.6rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0,198,255,0.2);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,198,255,0.35);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-secondary:hover {
+      border-color: var(--accent1);
+      color: var(--accent1);
+    }
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent2), var(--accent3));
+      color: #fff;
+      font-size: 1rem;
+      padding: 0.85rem 2rem;
+      box-shadow: 0 4px 24px rgba(123,47,247,0.3);
+    }
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(123,47,247,0.45);
+    }
+    .btn-reset {
+      background: rgba(255,79,107,0.1);
+      border: 1px solid rgba(255,79,107,0.3);
+      color: var(--danger);
+    }
+    .btn-reset:hover { background: rgba(255,79,107,0.2); }
+
+    /* ─── Step visibility ─── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* ─── Loading state ─── */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    #loading.active { display: block; }
+    .loader {
+      display: inline-block;
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent1);
+      border-right-color: var(--accent2);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { color: var(--muted); }
+
+    /* ─── Output ─── */
+    #output { display: none; }
+    #output.active { display: block; }
+
+    .output-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .output-header h2 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .output-header p { color: var(--muted); font-size: 0.95rem; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .summary-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1rem;
+      text-align: center;
+    }
+    .summary-chip .chip-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.3rem;
+    }
+    .summary-chip .chip-val {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--accent1);
+    }
+
+    /* ─── Session card ─── */
+    .session-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .session-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.1rem 1.5rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--transition);
+    }
+    .session-header:hover { background: rgba(0,198,255,0.04); }
+    .session-num {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent1));
+      font-weight: 800;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .session-meta { flex: 1; }
+    .session-meta h3 { font-size: 1rem; font-weight: 700; }
+    .session-meta p { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+    .session-theme-tag {
+      font-size: 0.7rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .theme-ai    { background: rgba(123,47,247,0.15); color: #b580ff; border: 1px solid rgba(123,47,247,0.3); }
+    .theme-gen   { background: rgba(0,198,255,0.1);   color: var(--accent1); border: 1px solid rgba(0,198,255,0.2); }
+    .theme-sus   { background: rgba(0,229,160,0.1);   color: var(--accent3); border: 1px solid rgba(0,229,160,0.2); }
+    .theme-biz   { background: rgba(255,200,0,0.1);   color: #ffd740; border: 1px solid rgba(255,200,0,0.2); }
+    .session-chevron {
+      color: var(--muted);
+      transition: transform var(--transition);
+      flex-shrink: 0;
+    }
+    .session-card.open .session-chevron { transform: rotate(180deg); }
+
+    .session-body {
+      display: none;
+      padding: 0 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .session-card.open .session-body { display: block; }
+
+    .section-block { margin-top: 1.25rem; }
+    .section-block h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.6rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .section-block h4 .icon { font-size: 0.9rem; }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .tag {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .tag.highlight {
+      background: rgba(0,198,255,0.08);
+      border-color: rgba(0,198,255,0.25);
+      color: var(--accent1);
+    }
+
+    ul.detail-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    ul.detail-list li {
+      font-size: 0.9rem;
+      color: var(--text);
+      padding-left: 1.2rem;
+      position: relative;
+      line-height: 1.5;
+    }
+    ul.detail-list li::before {
+      content: '›';
+      position: absolute;
+      left: 0;
+      color: var(--accent1);
+      font-weight: 700;
+    }
+
+    .assessment-box {
+      background: rgba(0,229,160,0.05);
+      border: 1px solid rgba(0,229,160,0.2);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .assessment-box strong { color: var(--accent3); }
+
+    .tip-box {
+      background: rgba(123,47,247,0.06);
+      border: 1px solid rgba(123,47,247,0.2);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.84rem;
+      color: #c8a4ff;
+      margin-top: 1rem;
+      display: flex; gap: 0.5rem; align-items: flex-start;
+    }
+
+    /* ─── Error ─── */
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.82rem;
+      margin-top: 0.3rem;
+      display: none;
+    }
+    .field.has-error input,
+    .field.has-error select { border-color: var(--danger); }
+    .field.has-error .error-msg { display: block; }
+
+    /* ─── Footer ─── */
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 2rem 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── Responsive tweaks ─── */
+    @media (max-width: 480px) {
+      .card { padding: 1.25rem; }
+      .session-header { padding: 0.9rem 1rem; }
+      .session-body { padding: 0 1rem 1rem; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-badge"><span class="dot"></span> AI · Cloud · Sustainability</div>
+    <h1>English &amp; <span class="gradient-text">Communication</span><br>Course Designer</h1>
+    <p>Generate a fully personalized, ready-to-teach course plan tailored to your learners' goals, interests, and confidence levels.</p>
+  </header>
+
+  <!-- Main form area -->
+  <div class="container" id="formArea">
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-step">
+        <div class="step-num active" id="sn1">1</div>
+        <span class="step-label active" id="sl1">Course Setup</span>
+      </div>
+      <div class="progress-line" id="pline"></div>
+      <div class="progress-step">
+        <div class="step-num" id="sn2">2</div>
+        <span class="step-label" id="sl2">Learner Profile</span>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: Course Setup ── -->
+    <div class="step active" id="step1">
+      <div class="card">
+        <div class="card-title">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Step 1 — Course Setup
+        </div>
+        <div class="form-grid">
+          <div class="field full" id="f-courseName">
+            <label for="courseName">Course Name</label>
+            <input type="text" id="courseName" placeholder="e.g. Professional English for Tech Innovators" />
+            <span class="error-msg">Please enter a course name.</span>
+          </div>
+
+          <div class="field" id="f-audience">
+            <label for="audience">Target Audience</label>
+            <div class="select-wrap">
+              <select id="audience">
+                <option value="">— Select —</option>
+                <option>University Students</option>
+                <option>Working Professionals</option>
+                <option>Government Staff</option>
+                <option>Corporate Teams</option>
+                <option>High School Students</option>
+                <option>Researchers & Academics</option>
+                <option>NGO / Non-profit Workers</option>
+                <option>Entrepreneurs & Startups</option>
+                <option>General Public</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a target audience.</span>
+          </div>
+
+          <div class="field" id="f-level">
+            <label for="level">English Level</label>
+            <div class="select-wrap">
+              <select id="level">
+                <option value="">— Select —</option>
+                <option>Beginner (A1)</option>
+                <option>Elementary (A2)</option>
+                <option>Pre-Intermediate (B1)</option>
+                <option>Intermediate (B1+)</option>
+                <option>Upper-Intermediate (B2)</option>
+                <option>Advanced (C1–C2)</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select an English level.</span>
+          </div>
+
+          <div class="field" id="f-format">
+            <label for="format">Class Format</label>
+            <div class="select-wrap">
+              <select id="format">
+                <option value="">— Select —</option>
+                <option>Online (Live)</option>
+                <option>Online (Self-paced)</option>
+                <option>Offline / In-person</option>
+                <option>Hybrid</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a class format.</span>
+          </div>
+
+          <div class="field" id="f-duration">
+            <label for="duration">Total Duration</label>
+            <div class="select-wrap">
+              <select id="duration">
+                <option value="">— Select —</option>
+                <option>1 Week (Intensive)</option>
+                <option>2 Weeks</option>
+                <option>1 Month</option>
+                <option>2 Months</option>
+                <option>3 Months</option>
+                <option>6 Months</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a duration.</span>
+          </div>
+
+          <div class="field" id="f-session">
+            <label for="sessionLen">Session Length</label>
+            <div class="select-wrap">
+              <select id="sessionLen">
+                <option value="">— Select —</option>
+                <option>45 min</option>
+                <option>60 min</option>
+                <option>90 min</option>
+                <option>120 min</option>
+                <option>180 min (Half-day)</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a session length.</span>
+          </div>
+
+          <div class="field full" id="f-goal">
+            <label for="goal">Primary Learning Goal</label>
+            <div class="select-wrap">
+              <select id="goal">
+                <option value="">— Select —</option>
+                <option>Improve Everyday Speaking &amp; Fluency</option>
+                <option>Master Professional Presentations</option>
+                <option>Business Communication &amp; Meetings</option>
+                <option>Academic Writing &amp; Research</option>
+                <option>Public Speaking &amp; Confidence</option>
+                <option>Technical &amp; Report Writing</option>
+                <option>Job Interview &amp; Career English</option>
+                <option>General Communication Skills</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a learning goal.</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <span></span>
+          <button class="btn btn-primary" onclick="goToStep2()">
+            Next: Learner Profile
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: Learner Profile ── -->
+    <div class="step" id="step2">
+      <div class="card">
+        <div class="card-title">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Step 2 — Learner Profile Survey
+        </div>
+        <div class="form-grid">
+          <div class="field" id="f-need">
+            <label for="need">Personal Learning Need</label>
+            <div class="select-wrap">
+              <select id="need">
+                <option value="">— Select —</option>
+                <option>Build Confidence in Speaking</option>
+                <option>Overcome Fear of Public Speaking</option>
+                <option>Improve Grammar &amp; Accuracy</option>
+                <option>Expand Vocabulary</option>
+                <option>Improve Listening &amp; Comprehension</option>
+                <option>Write More Clearly &amp; Professionally</option>
+                <option>Communicate Better in Meetings</option>
+                <option>Develop Critical Thinking in English</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a learning need.</span>
+          </div>
+
+          <div class="field" id="f-purpose">
+            <label for="purpose">Main Study Purpose</label>
+            <div class="select-wrap">
+              <select id="purpose">
+                <option value="">— Select —</option>
+                <option>Career Advancement</option>
+                <option>Academic Requirement</option>
+                <option>Personal Development</option>
+                <option>Certification / Exam Prep</option>
+                <option>Project / Work Requirement</option>
+                <option>Travel &amp; Cultural Exchange</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a purpose.</span>
+          </div>
+
+          <div class="field" id="f-interest">
+            <label for="interest">Interest Area</label>
+            <div class="select-wrap">
+              <select id="interest">
+                <option value="">— Select —</option>
+                <option>Technology &amp; AI</option>
+                <option>Environment &amp; Sustainability</option>
+                <option>Business &amp; Entrepreneurship</option>
+                <option>Science &amp; Innovation</option>
+                <option>Health &amp; Wellbeing</option>
+                <option>Society &amp; Culture</option>
+                <option>Mixed / General</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select an interest area.</span>
+          </div>
+
+          <div class="field" id="f-style">
+            <label for="style">Preferred Learning Style</label>
+            <div class="select-wrap">
+              <select id="style">
+                <option value="">— Select —</option>
+                <option>Visual (charts, diagrams, videos)</option>
+                <option>Auditory (listening, discussion)</option>
+                <option>Reading / Writing</option>
+                <option>Kinesthetic (hands-on, role-play)</option>
+                <option>Mixed / Multimodal</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select a learning style.</span>
+          </div>
+
+          <div class="field" id="f-aiknow">
+            <label for="aiknow">AI &amp; Tech Knowledge Level</label>
+            <div class="select-wrap">
+              <select id="aiknow">
+                <option value="">— Select —</option>
+                <option>None — completely new to AI/tech</option>
+                <option>Basic — heard of it, limited use</option>
+                <option>Intermediate — use AI tools regularly</option>
+                <option>Advanced — work in tech / AI field</option>
+              </select>
+            </div>
+            <span class="error-msg">Please select an AI knowledge level.</span>
+          </div>
+
+          <div class="field full">
+            <label>Confidence Levels</label>
+            <div class="slider-group">
+              <div class="slider-row">
+                <label for="speakConf">Speaking Confidence</label>
+                <input type="range" class="confidence-slider" id="speakConf" min="1" max="5" value="3"
+                  oninput="document.getElementById('sv1').textContent=this.value" />
+                <span class="slider-val" id="sv1">3</span>
+              </div>
+              <div class="slider-row">
+                <label for="presConf">Presentation Confidence</label>
+                <input type="range" class="confidence-slider" id="presConf" min="1" max="5" value="3"
+                  oninput="document.getElementById('sv2').textContent=this.value" />
+                <span class="slider-val" id="sv2">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="goToStep1()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back
+          </button>
+          <button class="btn btn-generate" onclick="generateCourse()">
+            ✦ Generate Course Plan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div class="loader"></div>
+      <p>Crafting your personalized course plan…</p>
+    </div>
+
+    <!-- Output -->
+    <div id="output">
+      <div class="output-header">
+        <h2 id="planTitle" class="gradient-text"></h2>
+        <p id="planSubtitle"></p>
+      </div>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <div id="sessionsContainer"></div>
+      <div class="btn-row" style="justify-content:center; margin-top:2rem;">
+        <button class="btn btn-reset" onclick="resetAll()">
+          ↺ Start Over
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <footer>
+    &copy; 2025 English &amp; Communication Course Designer &nbsp;·&nbsp; Powered by AI &amp; Cloud for Sustainable Impact
+  </footer>
+
+  <script>
+  // ─── Navigation ───────────────────────────────────────────────
+  function goToStep1() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+    updateProgress(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goToStep2() {
+    if (!validateStep1()) return;
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+    updateProgress(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateProgress(step) {
+    const sn1 = document.getElementById('sn1'), sl1 = document.getElementById('sl1');
+    const sn2 = document.getElementById('sn2'), sl2 = document.getElementById('sl2');
+    const pline = document.getElementById('pline');
+    if (step === 1) {
+      sn1.className = 'step-num active'; sl1.className = 'step-label active';
+      sn2.className = 'step-num'; sl2.className = 'step-label';
+      pline.classList.remove('filled');
+    } else {
+      sn1.className = 'step-num done'; sl1.className = 'step-label';
+      sn2.className = 'step-num active'; sl2.className = 'step-label active';
+      pline.classList.add('filled');
+    }
+  }
+
+  // ─── Validation ───────────────────────────────────────────────
+  const step1Fields = ['courseName','audience','level','format','duration','session','goal'];
+  const step2Fields = ['need','purpose','interest','style','aiknow'];
+
+  function validateField(id, isSelect) {
+    const el = document.getElementById(id);
+    const wrap = document.getElementById('f-' + id);
+    const val = el.value.trim();
+    if (!val) { wrap.classList.add('has-error'); return false; }
+    wrap.classList.remove('has-error'); return true;
+  }
+
+  function validateStep1() {
+    const ids = ['courseName','audience','level','format','duration','sessionLen','goal'];
+    const fids= ['courseName','audience','level','format','duration','session','goal'];
+    let ok = true;
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      const wrap = document.getElementById('f-' + fids[i]);
+      if (!el.value.trim()) { wrap.classList.add('has-error'); ok = false; }
+      else wrap.classList.remove('has-error');
+    });
+    return ok;
+  }
+
+  function validateStep2() {
+    const ids = ['need','purpose','interest','style','aiknow'];
+    let ok = true;
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      const wrap = document.getElementById('f-' + id);
+      if (!el.value.trim()) { wrap.classList.add('has-error'); ok = false; }
+      else wrap.classList.remove('has-error');
+    });
+    return ok;
+  }
+
+  // ─── Data collection ──────────────────────────────────────────
+  function collectData() {
+    return {
+      courseName:  document.getElementById('courseName').value.trim(),
+      audience:    document.getElementById('audience').value,
+      level:       document.getElementById('level').value,
+      format:      document.getElementById('format').value,
+      duration:    document.getElementById('duration').value,
+      sessionLen:  document.getElementById('sessionLen').value,
+      goal:        document.getElementById('goal').value,
+      need:        document.getElementById('need').value,
+      purpose:     document.getElementById('purpose').value,
+      interest:    document.getElementById('interest').value,
+      style:       document.getElementById('style').value,
+      speakConf:   parseInt(document.getElementById('speakConf').value),
+      presConf:    parseInt(document.getElementById('presConf').value),
+      aiknow:      document.getElementById('aiknow').value,
+    };
+  }
+
+  // ─── Generate ─────────────────────────────────────────────────
+  function generateCourse() {
+    if (!validateStep2()) return;
+    const d = collectData();
+
+    // Hide form, show loader
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('loading').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    setTimeout(() => {
+      document.getElementById('loading').classList.remove('active');
+      buildOutput(d);
+      document.getElementById('output').classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 1600);
+  }
+
+  // ─── Reset ────────────────────────────────────────────────────
+  function resetAll() {
+    document.getElementById('output').classList.remove('active');
+    document.getElementById('progressWrap').style.display = 'flex';
+    document.getElementById('sessionsContainer').innerHTML = '';
+    document.getElementById('summaryGrid').innerHTML = '';
+    document.getElementById('step1').classList.add('active');
+    updateProgress(1);
+    // Reset form
+    ['courseName','audience','level','format','duration','sessionLen','goal',
+     'need','purpose','interest','style','aiknow'].forEach(id => {
+       const el = document.getElementById(id);
+       if (el) el.value = el.tagName === 'SELECT' ? '' : '';
+     });
+    document.getElementById('speakConf').value = 3;
+    document.getElementById('sv1').textContent = '3';
+    document.getElementById('presConf').value = 3;
+    document.getElementById('sv2').textContent = '3';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ─── Course plan builder ──────────────────────────────────────
+  function buildOutput(d) {
+    const planTitle = document.getElementById('planTitle');
+    const planSubtitle = document.getElementById('planSubtitle');
+    planTitle.textContent = d.courseName || 'Your Personalized Course Plan';
+    planSubtitle.textContent = `${d.audience} · ${d.level} · ${d.format} · ${d.duration}`;
+
+    // Summary chips
+    const chips = [
+      { label: 'Level',    val: d.level.split(' ')[0] },
+      { label: 'Format',   val: d.format },
+      { label: 'Duration', val: d.duration },
+      { label: 'Session',  val: d.sessionLen },
+      { label: 'Goal',     val: d.goal.split(' ').slice(0,3).join(' ') + '…' },
+      { label: 'Speaking', val: confidenceLabel(d.speakConf) },
+      { label: 'Presenting', val: confidenceLabel(d.presConf) },
+      { label: 'AI Know.',  val: d.aiknow.split(' ')[0] },
+    ];
+    const sg = document.getElementById('summaryGrid');
+    sg.innerHTML = chips.map(c => `
+      <div class="summary-chip">
+        <div class="chip-label">${c.label}</div>
+        <div class="chip-val">${c.val}</div>
+      </div>`).join('');
+
+    // Generate sessions
+    const sessions = buildSessions(d);
+    const sc = document.getElementById('sessionsContainer');
+    sc.innerHTML = sessions.map((s, i) => renderSession(s, i + 1)).join('');
+
+    // Accordion
+    sc.querySelectorAll('.session-header').forEach(h => {
+      h.addEventListener('click', () => {
+        const card = h.closest('.session-card');
+        card.classList.toggle('open');
+      });
+    });
+    // Open first session by default
+    const first = sc.querySelector('.session-card');
+    if (first) first.classList.add('open');
+  }
+
+  function confidenceLabel(n) {
+    const map = { 1: 'Very Low', 2: 'Low', 3: 'Medium', 4: 'High', 5: 'Very High' };
+    return map[n] || 'Medium';
+  }
+
+  // ─── Session data builder ─────────────────────────────────────
+  function buildSessions(d) {
+    const totalSessions = calcSessions(d.duration, d.sessionLen);
+    const sessions = [];
+
+    // Derive parameters
+    const isLowConf   = d.speakConf <= 2 || d.presConf <= 2;
+    const isHighConf  = d.speakConf >= 4 && d.presConf >= 4;
+    const isAIInterest= d.interest.includes('Technology') || d.interest.includes('AI');
+    const isSusInterest=d.interest.includes('Environment') || d.interest.includes('Sustainability');
+    const isBizInterest=d.interest.includes('Business') || d.interest.includes('Entrepreneur');
+    const isBeginner  = d.level.includes('Beginner') || d.level.includes('Elementary');
+    const isAdvanced  = d.level.includes('Advanced') || d.level.includes('Upper');
+    const goalKey     = d.goal.toLowerCase();
+    const styleKey    = d.style.toLowerCase();
+
+    // Session pool — we define many and pick/slice to totalSessions
+    const pool = [
+      // ── Block 1: Foundations & Icebreakers ──
+      {
+        title: 'Welcome & Course Orientation',
+        focus: 'Introductions, expectations, and language learning mindset',
+        theme: 'gen',
+        themeLabel: 'Course Launch',
+        objectives: [
+          'Introduce themselves and the course community',
+          'Set personal learning goals using SMART criteria',
+          'Understand course expectations, tools, and format',
+        ],
+        activities: genActivities(d, [
+          'Icebreaker: "Two Truths & One AI Lie" — learners share facts about themselves',
+          'Gallery Walk: explore course topics displayed around the room / on shared slides',
+          `"My English Journey" partner interview — ${styleKey.includes('audit') ? 'discuss and record' : 'write and share'}`,
+          'Goal-setting worksheet: each learner writes 3 personal learning goals',
+          isBizInterest ? 'Networking introduction: pitch yourself in 30 seconds' : 'Group discussion: "Why English? Why now?"',
+        ]),
+        materials: [
+          'Course syllabus / overview',
+          'SMART goal template worksheet',
+          'Name badges or digital profile cards',
+          isLowConf ? 'Confidence self-assessment checklist' : 'Learning styles quiz handout',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Learners submit 3 written personal learning goals + a brief self-introduction paragraph.',
+        },
+        tip: isLowConf
+          ? '💡 Start with low-stakes sharing (written before verbal) to ease speaking anxiety.'
+          : '💡 Encourage learners to set stretch goals while staying realistic.',
+      },
+
+      {
+        title: 'Building Core Communication Skills',
+        focus: 'Clarity, confidence, and structure in everyday English',
+        theme: 'gen',
+        themeLabel: 'Core Skills',
+        objectives: [
+          'Identify barriers to clear communication',
+          'Practice structured spoken responses using the Point-Reason-Example model',
+          `Apply new ${isBeginner ? 'foundational' : 'professional'} vocabulary in context`,
+        ],
+        activities: genActivities(d, [
+          'Mini-lecture: The 3C Framework — Clear, Concise, Confident communication',
+          'Pair activity: respond to everyday prompts using Point-Reason-Example',
+          `Vocabulary building: ${isAIInterest ? '10 key AI and technology terms' : '10 key professional communication terms'} with pronunciation`,
+          styleKey.includes('visual') ? 'Visual mapping: draw a "communication mind map"' : 'Role-play: describe your typical workday in English',
+          isLowConf ? 'Guided speaking drill: repeat and build confidence with sentence starters' : 'Debate: "Is English the best global language for business?"',
+        ]),
+        materials: [
+          'Point-Reason-Example model card',
+          'Vocabulary list with phonetic guide',
+          styleKey.includes('visual') ? 'Mind-map template' : 'Role-play scenario cards',
+          'Audio/video clip: TED-style talk (1–2 min) for discussion',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Each learner delivers a 1-minute spoken response to a prompt using the PRE model. Peer feedback using a provided rubric.',
+        },
+        tip: '💡 Record learners (with consent) so they can self-review their speaking later.',
+      },
+
+      // ── Block 2: Listening & Vocabulary ──
+      {
+        title: 'Active Listening & Comprehension Strategies',
+        focus: 'Listening skills across accents, speeds, and topics',
+        theme: 'gen',
+        themeLabel: 'Listening',
+        objectives: [
+          'Use active listening techniques (note-taking, prediction, summarizing)',
+          'Identify main ideas, supporting details, and speaker intent',
+          `Understand ${isAIInterest ? 'tech and AI podcast/video content' : 'authentic English content'} at natural speed`,
+        ],
+        activities: genActivities(d, [
+          `Listen & discuss: ${isAIInterest ? 'a 3-min podcast clip about AI in daily life' : isSusInterest ? 'a 3-min clip on climate solutions' : 'a 3-min interview with a professional'}`,
+          'Note-taking challenge: capture key points in 60 seconds',
+          'Inference activity: guess speaker emotion and intent from audio',
+          'Jigsaw listening: groups listen to different segments, then share summaries',
+          styleKey.includes('audit') ? 'Shadowing exercise: repeat phrases matching the speaker\'s pace and intonation' : 'True/False comprehension quiz and discussion',
+        ]),
+        materials: [
+          '3-minute authentic audio/video clip',
+          'Active listening note-taking framework',
+          'Comprehension worksheet',
+          'Transcripts for self-check',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Learners submit a 5-point summary of the audio content. Accuracy and detail assessed.',
+        },
+        tip: '💡 Use subtitles first, then replay without — this builds confidence before testing comprehension alone.',
+      },
+
+      {
+        title: 'Vocabulary in Context: AI, Cloud & Sustainability',
+        focus: 'Building thematic vocabulary through real-world usage',
+        theme: isAIInterest ? 'ai' : isSusInterest ? 'sus' : 'gen',
+        themeLabel: isAIInterest ? 'AI & Cloud' : isSusInterest ? 'Sustainability' : 'Thematic',
+        objectives: [
+          'Learn and use 20+ key terms from AI, cloud computing, or sustainability',
+          'Understand word forms (noun, verb, adjective) of target vocabulary',
+          'Use new vocabulary in speaking and writing',
+        ],
+        activities: genActivities(d, [
+          `Word bank building: ${isAIInterest ? '"machine learning, algorithm, cloud storage, neural network, automation"' : isSusInterest ? '"carbon footprint, renewable energy, biodiversity, circular economy, net-zero"' : '"innovation, disruption, strategy, collaborate, implement"'}`,
+          'Matching exercise: words to definitions, then to example sentences',
+          styleKey.includes('visual') ? 'Create a visual vocabulary poster / digital flashcard deck' : 'Vocabulary journal: learners write their own sentences',
+          'Speaking game: "Taboo" — describe a term without using the word itself',
+          'Fill-in-the-gap: complete a professional text using target vocabulary',
+        ]),
+        materials: [
+          'Thematic vocabulary list with definitions and examples',
+          'Word-form table (noun / verb / adjective)',
+          styleKey.includes('visual') ? 'Blank poster / Canva template' : 'Vocabulary journal template',
+          'Gap-fill reading text',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Short vocabulary quiz (10 items: match, fill-in-gap). Learners write 5 original sentences using new words.',
+        },
+        tip: '💡 Revisit 5 vocabulary items from the previous session at the start — spaced repetition boosts retention by up to 80%.',
+      },
+
+      // ── Block 3: Reading & Writing ──
+      {
+        title: 'Reading for Understanding & Critical Thinking',
+        focus: 'Skimming, scanning, inference, and analysis',
+        theme: isSusInterest ? 'sus' : isAIInterest ? 'ai' : 'gen',
+        themeLabel: isSusInterest ? 'Sustainability' : isAIInterest ? 'AI & Cloud' : 'Reading',
+        objectives: [
+          'Apply skimming and scanning strategies to read efficiently',
+          'Identify text structure: problem–solution, cause–effect, compare–contrast',
+          `Critically evaluate ${isSusInterest ? 'an article on climate action' : isAIInterest ? 'a tech industry article' : 'a professional text'}`,
+        ],
+        activities: genActivities(d, [
+          `Reading warm-up: title prediction — "What do you think this article is about?"`,
+          'Timed skim: read the full article in 3 minutes, then summarize to a partner',
+          'Text structure identification exercise',
+          'Critical reading: highlight claims vs. evidence; is the argument convincing?',
+          `Discussion: "${isSusInterest ? 'Is technology the answer to climate change?' : isAIInterest ? 'How will AI change work in your field?' : 'How does this relate to your professional context?'}"`,
+        ]),
+        materials: [
+          `1-page reading text: ${isSusInterest ? '"Green Tech: AI Solutions for Climate Action"' : isAIInterest ? '"Cloud Computing for a Smarter Planet"' : '"Effective Communication in the Digital Age"'}`,
+          'Text structure worksheet',
+          'Annotation guide',
+          'Discussion question cards',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Learners write a 100-word response: "What is the author\'s main argument? Do you agree? Why?"',
+        },
+        tip: '💡 Pre-teaching 3–5 key words before reading reduces cognitive load and boosts comprehension.',
+      },
+
+      {
+        title: 'Professional Writing: Emails & Messages',
+        focus: 'Clear, professional, and culturally appropriate written English',
+        theme: isBizInterest ? 'biz' : 'gen',
+        themeLabel: isBizInterest ? 'Business' : 'Writing',
+        objectives: [
+          'Write professional emails with correct structure, tone, and register',
+          'Avoid common errors: ambiguity, overly formal/informal tone, unclear subject lines',
+          'Adapt tone for different audiences and purposes',
+        ],
+        activities: genActivities(d, [
+          'Before/after analysis: fix a poorly written email using a checklist',
+          `Template practice: write a request email, a follow-up, and a ${isBizInterest ? 'partnership proposal' : 'status update'}`,
+          'Tone calibration exercise: rewrite the same message for 3 different audiences',
+          'Peer review: swap emails and give structured feedback',
+          styleKey.includes('kines') ? 'Simulation: urgent email response drill under a 5-minute timer' : 'Subject line workshop: write 5 clear subject lines for given scenarios',
+        ]),
+        materials: [
+          'Email structure template (Subject / Greeting / Body / Closing)',
+          'Common phrases bank for professional emails',
+          'Tone and register guide',
+          'Peer feedback form',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Write a professional email responding to a given scenario (150–200 words). Assessed on structure, tone, clarity, and grammar.',
+        },
+        tip: '💡 Show real (anonymized) email examples — good and bad — to make the lesson immediately practical.',
+      },
+
+      {
+        title: 'Structured Writing: Reports & Summaries',
+        focus: 'Organizing ideas and writing structured professional documents',
+        theme: isAIInterest ? 'ai' : isSusInterest ? 'sus' : 'gen',
+        themeLabel: 'Writing',
+        objectives: [
+          'Write a structured short report with introduction, findings, and conclusion',
+          'Use cohesive devices (firstly, however, as a result, in conclusion)',
+          `Apply writing skills to a ${isAIInterest ? 'technology project summary' : isSusInterest ? 'sustainability initiative report' : 'professional case study'}`,
+        ],
+        activities: genActivities(d, [
+          'Input text analysis: identify the structure of a model report',
+          'Paragraph-level practice: write an introduction paragraph using a template',
+          'Jigsaw writing: each group writes one section, then combines into a full report',
+          'Cohesive devices exercise: link sentences using connectors',
+          'Peer review workshop: structured written feedback using a rubric',
+        ]),
+        materials: [
+          'Model report (1 page)',
+          'Report structure template',
+          'Cohesive devices reference card',
+          'Peer review rubric',
+        ],
+        assessment: {
+          type: 'Summative (if applicable)',
+          desc: `Write a 200-word report on: "${isAIInterest ? 'Benefits of AI for your organization' : isSusInterest ? 'How our organization can reduce its carbon footprint' : 'A current challenge in your field and recommended solutions'}". Assessed on structure, cohesion, accuracy, and relevance.`,
+        },
+        tip: '💡 Provide sentence starters for each section — this reduces blank-page anxiety and maintains focus on structure.',
+      },
+
+      // ── Block 4: Speaking & Presenting ──
+      {
+        title: 'Fluency & Natural Speaking',
+        focus: 'Reducing hesitation and building spoken confidence',
+        theme: 'gen',
+        themeLabel: 'Speaking',
+        objectives: [
+          'Use fillers and transitions naturally to maintain fluency',
+          'Speak for 1–2 minutes on familiar topics without over-preparing',
+          isLowConf ? 'Overcome hesitation and self-correction anxiety' : 'Vary pace, volume, and emphasis for effect',
+        ],
+        activities: genActivities(d, [
+          isLowConf ? 'Warm-up: "Would You Rather?" — low-stakes opinion sharing with no wrong answers' : 'Warm-up: rapid-fire opinion game — 30 seconds each',
+          '"Just a Minute" speaking game: speak for 60 seconds on a topic without stopping',
+          'Fluency drills: shadow and repeat target phrases with natural rhythm',
+          'Story chain: each learner adds one sentence to a continuing story',
+          `Discussion: "${isAIInterest ? 'What would your life look like with a personal AI assistant?' : 'What is one thing you would change about your work/study environment?'}"`,
+        ]),
+        materials: [
+          'Fluency filler phrases list ("Well…", "What I mean is…", "Building on that…")',
+          'Speaking topic cards',
+          'Self-assessment checklist: rate your own fluency',
+          isLowConf ? 'Anxiety management tips sheet' : 'Peer feedback grid',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Each learner speaks for 90 seconds on a topic of their choice. Self-assessment + teacher feedback on fluency indicators.',
+        },
+        tip: isLowConf
+          ? '💡 Use "thinking time" cards — give learners 30 seconds to prepare before speaking. This dramatically reduces anxiety.'
+          : '💡 Record and replay a short clip to help learners notice their own patterns and improvements.',
+      },
+
+      {
+        title: 'Presentation Skills I — Structure & Delivery',
+        focus: 'Building a strong presentation framework and delivery basics',
+        theme: isAIInterest ? 'ai' : isBizInterest ? 'biz' : 'gen',
+        themeLabel: d.presConf <= 2 ? 'Foundations' : 'Presenting',
+        objectives: [
+          'Structure a presentation using the "Tell-Show-Tell" framework',
+          'Open a presentation with impact: hook, context, and agenda',
+          d.presConf <= 2 ? 'Manage nerves and use body language positively' : 'Use transitions and signposting language fluently',
+        ],
+        activities: genActivities(d, [
+          'Video analysis: watch a 2-min presentation opening and identify what works',
+          '"Power opening" workshop: write and deliver a 60-second presentation opening',
+          'Signposting language practice: "Today I\'ll cover…", "Moving on to…", "To summarize…"',
+          styleKey.includes('kines') ? 'Physical delivery drill: practice posture, eye contact, and gestures' : 'Slides critique: identify good vs. bad slide design choices',
+          `Topic assignment: prepare a 3-minute presentation on "${isAIInterest ? 'an AI tool you use or want to use' : isBizInterest ? 'a business challenge in your field' : 'a change you would make to improve your community'}"`,
+        ]),
+        materials: [
+          '"Tell-Show-Tell" framework card',
+          'Presentation signposting language list',
+          styleKey.includes('kines') ? 'Body language dos and don\'ts poster' : 'Slide design checklist',
+          'Topic assignment brief',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Learners deliver their 3-minute presentation. Feedback given on structure, opening, and signposting. Peer assessment using a provided rubric.',
+        },
+        tip: d.presConf <= 2
+          ? '💡 Normalize nerves — share that even TED speakers get nervous. Reframe nervous energy as excitement.'
+          : '💡 Teach the "pause with purpose" technique — deliberate silence creates emphasis and confidence.',
+      },
+
+      {
+        title: 'Presentation Skills II — Visual Aids & Q&A',
+        focus: 'Designing effective slides and handling audience questions',
+        theme: isAIInterest ? 'ai' : 'gen',
+        themeLabel: 'Presenting',
+        objectives: [
+          'Create slides that support — not replace — the speaker\'s message',
+          'Answer questions confidently using the STAR technique (Situation, Task, Action, Result)',
+          `Handle challenging or unexpected questions gracefully`,
+        ],
+        activities: genActivities(d, [
+          'Slide makeover: redesign a cluttered slide into a clear, visual one',
+          'Live demo: create one powerful slide in 10 minutes',
+          'Mock Q&A: practice answering 5 common audience questions',
+          '"Buy time" phrases workshop: "That\'s a great question…", "Could you clarify what you mean by…?"',
+          `Full practice run: 3-minute presentation with Q&A on "${isAIInterest ? 'How AI supports sustainability' : 'A solution to a real-world challenge'}"`,
+        ]),
+        materials: [
+          'Slide design principles (one-slide guide: "6×6 rule", contrast, white space)',
+          'STAR technique answer framework card',
+          'Buy-time phrases reference sheet',
+          'Q&A practice cards (10 question prompts)',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Full mini-presentation with Q&A. Assessed on visual aids quality, answer quality, and composure. Peer + instructor feedback.',
+        },
+        tip: '💡 Teach the 10-20-30 rule for slides: max 10 slides, 20 minutes, 30pt font minimum.',
+      },
+
+      // ── Block 5: Professional & Academic ──
+      {
+        title: 'Business English: Meetings & Discussions',
+        focus: 'Participating effectively in professional meetings',
+        theme: isBizInterest ? 'biz' : 'gen',
+        themeLabel: 'Business',
+        objectives: [
+          'Use formal and semi-formal language for meetings and discussions',
+          'Agree, disagree, interrupt, and clarify politely in English',
+          'Chair a short meeting and keep discussion on track',
+        ],
+        activities: genActivities(d, [
+          'Input: meeting language phrases — opening, discussing, summarizing, closing',
+          `Simulated meeting: discuss "${isAIInterest ? 'adopting an AI tool for the team' : isSusInterest ? 'implementing a green policy at the office' : 'solving a current workplace challenge'}"`,
+          'Interruption and turn-taking drill: learners practice polite interjections',
+          'Role-rotation: each learner takes the chair role for 5 minutes',
+          'Reflection: "What did you find easy or challenging in the meeting?"',
+        ]),
+        materials: [
+          'Meeting phrases reference card (5 functions × 3 phrases each)',
+          'Meeting agenda template',
+          'Observer feedback form',
+          'Discussion topic prompt cards',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Observed simulated meeting (10–15 min). Assessed on participation, use of meeting language, and listening.',
+        },
+        tip: '💡 Assign "language monitors" — learners who track specific phrases being used, creating accountability and awareness.',
+      },
+
+      {
+        title: 'Pronunciation & Intonation Mastery',
+        focus: 'Clarity, stress patterns, and natural English rhythm',
+        theme: 'gen',
+        themeLabel: 'Pronunciation',
+        objectives: [
+          'Identify and practice word stress in multi-syllable words',
+          'Use sentence stress to convey emphasis and meaning',
+          'Recognize and produce natural intonation patterns in questions and statements',
+        ],
+        activities: genActivities(d, [
+          'Diagnostic: record yourself reading a paragraph — identify stress challenges',
+          'Minimal pairs practice: word pairs that differ by one sound',
+          'Stress pattern drill: clap the stress pattern of 10 professional terms',
+          styleKey.includes('audit') ? 'Intonation imitation: shadow a native speaker sentence by sentence' : 'Pitch graph exercise: draw the intonation pattern of sentences',
+          'Tongue twisters race: for fun AND to target specific sounds',
+        ]),
+        materials: [
+          'Word stress guide with professional vocabulary examples',
+          'Minimal pairs list',
+          'Audio recordings (teacher or authentic)',
+          'Intonation pattern diagram',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Read a 5-sentence paragraph aloud. Teacher marks stress accuracy. Learners compare recording from start of course to now.',
+        },
+        tip: '💡 Don\'t aim for a "perfect" accent — aim for clarity and intelligibility. Learners\' own accents are valid and valuable.',
+      },
+
+      // ── Block 6: AI & Sustainability Theme ──
+      {
+        title: 'Communicating About AI and Technology',
+        focus: 'Explaining complex tech concepts simply and confidently',
+        theme: 'ai',
+        themeLabel: 'AI & Cloud',
+        objectives: [
+          `Explain ${d.aiknow.includes('None') || d.aiknow.includes('Basic') ? 'basic AI and cloud concepts' : 'complex AI concepts'} to a non-specialist audience`,
+          'Use analogies and plain-language techniques to simplify technical language',
+          'Deliver a clear, jargon-free tech explainer',
+        ],
+        activities: genActivities(d, [
+          `Concept mapping: "What is ${d.aiknow.includes('Advanced') ? 'generative AI' : 'artificial intelligence'}? How does it work?" — draw and explain`,
+          '"Explain it to your grandmother" challenge: explain an AI concept in simple terms',
+          'Analogies workshop: create analogies to explain "cloud storage", "algorithms", "neural networks"',
+          `Case study discussion: "${isSusInterest ? 'How AI is helping fight climate change' : 'How AI is transforming work and society'}"`,
+          'Mini lightning talk: 2-minute explainer on one AI/cloud topic of your choice',
+        ]),
+        materials: [
+          'AI & Cloud glossary (accessible level-appropriate version)',
+          'Case study article (1 page)',
+          'Analogy creation worksheet',
+          'Lightning talk topic menu',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: `2-minute lightning talk: explain an AI or cloud concept clearly to the class. Assessed on clarity, simplicity, and confidence. ${d.aiknow.includes('Advanced') ? 'Advanced learners must use no unexplained jargon.' : ''}`,
+        },
+        tip: `💡 ${d.aiknow.includes('None') ? 'Use everyday analogies first (e.g., AI = a very smart autocomplete). Confidence grows when learners realize they already understand more than they think.' : 'Encourage learners to connect AI topics to their own field — this makes communication immediately relevant.'}`,
+      },
+
+      {
+        title: 'Language for Sustainability & Global Impact',
+        focus: 'Communicating environmental and social themes with clarity and conviction',
+        theme: 'sus',
+        themeLabel: 'Sustainability',
+        objectives: [
+          'Discuss environmental and sustainability topics fluently in English',
+          'Express opinions, cause/effect, and solutions with precision',
+          'Connect AI and cloud computing to sustainable development goals (SDGs)',
+        ],
+        activities: genActivities(d, [
+          'SDG exploration: browse the 17 SDGs — which 3 matter most to your learners and why?',
+          `Case study: "${isAIInterest ? 'How cloud data centers are becoming carbon-neutral' : 'Community-led climate solutions around the world'}"`,
+          'Cause and effect language drill: "Due to…", "This results in…", "As a consequence…"',
+          'Opinion expression practice: agree/disagree/qualify on sustainability statements',
+          'Group debate: "Technology is the most powerful tool for achieving sustainability — do you agree?"',
+        ]),
+        materials: [
+          'SDG reference card (17 goals overview)',
+          'Cause & effect language guide',
+          'Debate preparation worksheet',
+          'Case study article',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Group debate participation (5–8 min). Assessed on argumentation quality, language variety, and engagement. Individual: write a 100-word opinion paragraph.',
+        },
+        tip: '💡 Connect each sustainability topic back to learners\' own contexts — this creates genuine engagement, not just vocabulary practice.',
+      },
+
+      // ── Block 7: Advanced / Capstone ──
+      {
+        title: 'Storytelling & Narrative Communication',
+        focus: 'Making messages memorable through story structure',
+        theme: 'gen',
+        themeLabel: 'Advanced Skills',
+        objectives: [
+          'Structure a professional story using the "Challenge-Action-Result" arc',
+          'Use vivid language, detail, and emotion to engage an audience',
+          `Tell a compelling story about ${isAIInterest ? 'a technology that changed something' : isSusInterest ? 'an environmental challenge and solution' : 'a professional experience'}`,
+        ],
+        activities: genActivities(d, [
+          'TED Talk excerpt analysis: identify storytelling techniques used by the speaker',
+          'CAR framework workshop: map a real experience onto Challenge-Action-Result',
+          'Story spine warm-up: "Once upon a time… Every day… Until one day… Because of that… Until finally…"',
+          'Partner storytelling: 2 minutes each, then give feedback on engagement level',
+          `Full story presentation: 3–4 minutes on "${isAIInterest ? 'how a technology changed something in your life or work' : 'a time you overcame a communication challenge'}"`,
+        ]),
+        materials: [
+          'CAR (Challenge-Action-Result) story framework card',
+          'Vivid language word bank',
+          'Story spine template',
+          'Peer feedback form (engagement + language)',
+        ],
+        assessment: {
+          type: 'Summative (if applicable)',
+          desc: '3–4 minute personal story delivered to the class. Graded on structure, engagement, language variety, and delivery. Self-reflection submitted after.',
+        },
+        tip: '💡 Stories are remembered 22× more than facts alone. Teach learners this — it motivates them to invest in storytelling.',
+      },
+
+      {
+        title: 'Negotiation & Persuasion in English',
+        focus: 'Influence, persuade, and negotiate professionally',
+        theme: isBizInterest ? 'biz' : isAIInterest ? 'ai' : 'gen',
+        themeLabel: isBizInterest ? 'Business' : 'Advanced Skills',
+        objectives: [
+          'Use persuasive language patterns: ethos, pathos, logos',
+          'Negotiate a position while maintaining professional rapport',
+          `Apply persuasion skills to a ${isBizInterest ? 'business scenario' : isAIInterest ? 'technology adoption proposal' : 'workplace challenge'}`,
+        ],
+        activities: genActivities(d, [
+          'Input: the 3 pillars of persuasion — credibility (ethos), emotion (pathos), logic (logos)',
+          'Advertising analysis: identify persuasion techniques in 3 real ads or pitch clips',
+          `Role-play negotiation: "${isBizInterest ? 'negotiate a budget increase for a new AI tool' : isAIInterest ? 'persuade your team to adopt a cloud-based solution' : 'negotiate deadline or resource allocation with a manager'}"`,
+          'Counter-argument practice: anticipate and address objections',
+          'Mini pitch: 90-second persuasive pitch on a chosen topic',
+        ]),
+        materials: [
+          'Persuasion language toolkit (phrases for each pillar)',
+          'Role-play scenario cards',
+          'Objection response guide',
+          'Mini pitch scoring rubric',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Observed role-play negotiation (5 min per pair). Assessed on persuasiveness, language use, and professional tone.',
+        },
+        tip: '💡 Teach "yes, and…" before "yes, but…" — this maintains momentum and demonstrates collaborative mindset in negotiations.',
+      },
+
+      {
+        title: 'Cross-Cultural Communication & Global English',
+        focus: 'Communicating effectively across cultures and contexts',
+        theme: 'gen',
+        themeLabel: 'Global Skills',
+        objectives: [
+          'Identify and navigate key cultural differences in communication styles',
+          'Adapt language register and directness for different cultural contexts',
+          'Communicate with empathy, curiosity, and respect in multicultural settings',
+        ],
+        activities: genActivities(d, [
+          'Culture quiz: "high-context vs. low-context communication" — learners guess country styles',
+          'Scenario analysis: the same email interpreted very differently across cultures',
+          'Video: cross-cultural misunderstanding — what went wrong? What could be done differently?',
+          'Group discussion: share a personal cross-cultural communication experience',
+          'Role-play: international video call with participants from different communication styles',
+        ]),
+        materials: [
+          'High-context vs. low-context communication diagram',
+          'Culture comparison cards (6 countries)',
+          'Cross-cultural scenario set (3 scenarios)',
+          'Video clip (2–3 min)',
+        ],
+        assessment: {
+          type: 'Formative',
+          desc: 'Reflective writing: "Describe a time cultural differences affected communication. What did you learn?" (150 words)',
+        },
+        tip: '💡 Avoid stereotypes — frame cultural communication as tendencies, not rules. Every individual may differ.',
+      },
+
+      // ── Capstone ──
+      {
+        title: 'Capstone Project: Design & Pitch',
+        focus: 'Bringing together all skills in a final integrated project',
+        theme: isAIInterest ? 'ai' : isSusInterest ? 'sus' : isBizInterest ? 'biz' : 'gen',
+        themeLabel: 'Capstone',
+        objectives: [
+          'Design and deliver a full English communication project',
+          `Create a presentation, report, or pitch on "${isAIInterest ? 'an AI or cloud solution for a sustainable challenge' : isSusInterest ? 'a sustainability initiative for your community' : 'a professional communication strategy'}"`,
+          'Apply all course skills: vocabulary, structure, delivery, and Q&A handling',
+        ],
+        activities: genActivities(d, [
+          'Project briefing and group/individual planning session',
+          'Research and content development time (in-class guided)',
+          'Draft presentation / report peer review workshop',
+          'Rehearsal and instructor coaching session',
+          'Final presentations to class with Q&A (8–10 min each)',
+        ]),
+        materials: [
+          'Capstone project brief and rubric',
+          'Planning worksheet and timeline',
+          'Peer review feedback form',
+          'Presentation structure guide',
+        ],
+        assessment: {
+          type: 'Summative',
+          desc: `8–10 minute final presentation${isAdvanced ? ' including a 3-minute Q&A' : ''}. Assessed on content, language, structure, delivery, and visual aids. Written component: 300-word project reflection.`,
+        },
+        tip: '💡 The capstone should feel like a celebration, not an exam. Create a supportive, gallery-style atmosphere.',
+      },
+
+      {
+        title: 'Course Reflection & Celebration',
+        focus: 'Celebrating growth, consolidating learning, and looking ahead',
+        theme: 'gen',
+        themeLabel: 'Closing',
+        objectives: [
+          'Reflect on personal learning journey and measurable progress',
+          'Give and receive constructive feedback using professional English',
+          'Set actionable post-course English learning goals',
+        ],
+        activities: genActivities(d, [
+          '"Before and After": learners compare their Day 1 self-introduction to a new one — what has changed?',
+          'Appreciation circle: each learner gives one genuine compliment to a classmate in English',
+          'Learning highlights gallery: each learner shares their #1 most valuable insight',
+          'Post-course action plan: "I will practise English by _____ for _____ minutes each day"',
+          'Certificate presentation and group photo / virtual celebration',
+        ]),
+        materials: [
+          'Post-course learning goals template',
+          'Final self-assessment form',
+          'Certificate of completion template',
+          'Resource list for continued English learning (apps, podcasts, channels)',
+        ],
+        assessment: {
+          type: 'Summative (Portfolio)',
+          desc: 'Learners submit their complete portfolio: goal sheet, vocabulary journal, 3 best written pieces, and a final 500-word reflection on their communication growth.',
+        },
+        tip: '💡 End with a genuine celebration. Language learning is hard — recognizing progress matters more than perfection.',
+      },
+    ];
+
+    // Select sessions based on count
+    const selected = selectSessions(pool, totalSessions, d);
+    return selected;
+  }
+
+  function selectSessions(pool, total, d) {
+    // Always include first (orientation) and last (reflection)
+    // Always include capstone if total >= 6
+    const first  = pool[0];
+    const last   = pool[pool.length - 1];
+    const cap    = pool[pool.length - 2];
+    const middle = pool.slice(1, pool.length - 2);
+
+    // Scoring: boost sessions aligned with learner profile
+    const goalKey    = d.goal.toLowerCase();
+    const interestK  = d.interest.toLowerCase();
+    const needKey    = d.need.toLowerCase();
+
+    const scored = middle.map(s => {
+      let score = 0;
+      if (goalKey.includes('speak')   && s.focus.toLowerCase().includes('speak')) score += 3;
+      if (goalKey.includes('present') && s.focus.toLowerCase().includes('present')) score += 3;
+      if (goalKey.includes('writing') && s.focus.toLowerCase().includes('writ')) score += 3;
+      if (goalKey.includes('business')&& s.theme === 'biz') score += 2;
+      if (interestK.includes('ai')    && s.theme === 'ai')  score += 2;
+      if (interestK.includes('sustain')&&s.theme === 'sus') score += 2;
+      if (needKey.includes('confid')  && s.focus.toLowerCase().includes('confid')) score += 2;
+      if (needKey.includes('grammar') && (s.focus.toLowerCase().includes('grammar') || s.focus.toLowerCase().includes('accuracy'))) score += 2;
+      if (needKey.includes('vocab')   && s.focus.toLowerCase().includes('vocab')) score += 2;
+      score += Math.random() * 0.5; // slight randomness
+      return { s, score };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+
+    let pick;
+    if (total <= 3) {
+      pick = [first, ...scored.slice(0, total - 1).map(x => x.s)].slice(0, total);
+      pick[pick.length - 1] = last;
+    } else if (total <= 5) {
+      const mid = scored.slice(0, total - 2).map(x => x.s);
+      pick = [first, ...mid, last];
+    } else {
+      const mid = scored.slice(0, total - 3).map(x => x.s);
+      pick = [first, ...mid, cap, last];
+    }
+
+    return pick.slice(0, total);
+  }
+
+  function calcSessions(duration, sessionLen) {
+    const dMap = {
+      '1 Week (Intensive)': 5,
+      '2 Weeks': 6,
+      '1 Month': 8,
+      '2 Months': 12,
+      '3 Months': 16,
+      '6 Months': 24,
+    };
+    return dMap[duration] || 8;
+  }
+
+  function genActivities(d, list) {
+    // Adapt activities slightly based on format
+    const fmt = d.format.toLowerCase();
+    return list.map(a => {
+      if (fmt.includes('online') && a.includes('room')) {
+        return a.replace('room', 'breakout rooms').replace('Walk', 'Gallery (shared slides)');
+      }
+      return a;
+    });
+  }
+
+  // ─── Render session card ───────────────────────────────────────
+  function renderSession(s, n) {
+    const themeTag = `<span class="session-theme-tag theme-${s.theme}">${s.themeLabel}</span>`;
+    const objectives = s.objectives.map(o => `<li>${o}</li>`).join('');
+    const activities = s.activities.map(a => `<li>${a}</li>`).join('');
+    const materials  = s.materials.map(m => `<span class="tag">${m}</span>`).join('');
+
+    return `
+    <div class="session-card" role="region" aria-label="Session ${n}">
+      <div class="session-header" role="button" tabindex="0" aria-expanded="false"
+           onkeydown="if(event.key==='Enter'||event.key===' '){this.click();}">
+        <div class="session-num">${n}</div>
+        <div class="session-meta">
+          <h3>Session ${n}: ${escHtml(s.title)}</h3>
+          <p>${escHtml(s.focus)}</p>
+        </div>
+        ${themeTag}
+        <svg class="session-chevron" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="session-body">
+        <div class="section-block">
+          <h4><span class="icon">🎯</span> Learning Objectives</h4>
+          <ul class="detail-list">${objectives}</ul>
+        </div>
+        <div class="section-block">
+          <h4><span class="icon">⚡</span> Activities &amp; Tasks</h4>
+          <ul class="detail-list">${activities}</ul>
+        </div>
+        <div class="section-block">
+          <h4><span class="icon">📚</span> Materials &amp; Resources</h4>
+          <div class="tag-list">${materials}</div>
+        </div>
+        <div class="section-block">
+          <h4><span class="icon">📋</span> Assessment</h4>
+          <div class="assessment-box">
+            <strong>${escHtml(s.assessment.type)}:</strong> ${escHtml(s.assessment.desc)}
+          </div>
+        </div>
+        <div class="tip-box">
+          <span>✦</span>
+          <span><strong>Instructor Tip:</strong> ${escHtml(s.tip)}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  </script>
+</body>
+</html>
